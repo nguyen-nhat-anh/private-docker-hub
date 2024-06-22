@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  docker:
+    image: docker:20.10.17-dind
+    privileged: yes
+    volumes:
+      - certs:/certs
+      - type: bind
+        source: ${PWD}/certs/domain.crt
+        target: '/etc/docker/certs.d/registry:443/ca.crt'
+
+  docker-cli:
+    image: docker:20.10.17
+    environment:
+      DOCKER_TLS_VERIFY: 1
+      DOCKER_CERT_PATH: /certs/client
+      DOCKER_HOST: tcp://docker:2376
+    entrypoint:
+      - "tail"
+      - "-f"
+      - "/dev/null"
+    volumes:
+      - certs:/certs
+
+  registry:
+    image: registry:2.7.0
+    expose:
+      - 443
+    environment:
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/domain.key
+      REGISTRY_HTTP_ADDR: 0.0.0.0:443
+    volumes:
+      - ${PWD}/certs/domain.crt:/certs/domain.crt
+      - ${PWD}/certs/domain.key:/certs/domain.key
+    restart: always
+
+volumes:
+  certs:
