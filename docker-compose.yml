@@ -31,10 +31,29 @@ services:
       REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
       REGISTRY_HTTP_TLS_KEY: /certs/domain.key
       REGISTRY_HTTP_ADDR: 0.0.0.0:443
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ${PWD}/certs/domain.crt:/certs/domain.crt
       - ${PWD}/certs/domain.key:/certs/domain.key
     restart: always
+
+  registry-ui:
+    image: joxit/docker-registry-ui:main
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=Docker Registry UI
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - NGINX_PROXY_PASS_URL=https://registry:443
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
 
 volumes:
   certs:
